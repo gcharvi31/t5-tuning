@@ -49,7 +49,7 @@ from transformers import (
 )
 
 import subprocess
-#from pytorch_lightning.callbacks import TQDMProgressBar
+from pytorch_lightning.callbacks import TQDMProgressBar
 import pickle
 
 # Seeds all the processes including numpy torch and other imported modules - makes for better comparisions
@@ -64,11 +64,11 @@ logger_fname = 'log_compute_model_3.csv'
 model_name = "model_3"
 MODEL_NAME ='t5-base'
 BATCH_SIZE = 4
-N_EPOCHS = 10
+N_EPOCHS = 20
 val_losses = []
 
 logger_pid = subprocess.Popen(
-    ['python', 'log_gpu_cpu_stats.py',
+    ['python', '../log_gpu_cpu_stats.py',
      logger_fname,
      '--loop',  '30',  # Interval between measurements, in seconds (optional, default=1)
     ])
@@ -99,7 +99,7 @@ def extract_questions_and_answers(factoid_path = Path):
     return pd.DataFrame(data_rows)
 
 
-factoid_paths = sorted(list(Path('BioASQ/').glob('BioASQ-train-*')))
+factoid_paths = sorted(list(Path('../BioASQ/').glob('BioASQ-train-*')))
 dfs = []
 
 for factoid_path in factoid_paths:
@@ -281,7 +281,7 @@ model = BioQAModel()
 # To record the best performing model using checkpoint
 
 checkpoint_callback = ModelCheckpoint(
-    dirpath="checkpoints",
+    dirpath="checkpoints_1",
     filename="best-checkpoint",
     save_top_k=1,
     verbose=True,
@@ -291,9 +291,10 @@ checkpoint_callback = ModelCheckpoint(
 
 
 trainer = pl.Trainer(
-#    callbacks=[checkpoint_callback, TQDMProgressBar(refresh_rate=30)],
+    callbacks=[checkpoint_callback, TQDMProgressBar(refresh_rate=30)],
+    accelerator="gpu",
     max_epochs=N_EPOCHS,
-    gpus=num_of_gpus,
+    devices=num_of_gpus,
     precision=fp_precision
 )
 
@@ -303,7 +304,7 @@ trainer.fit(model, data_module)
 training_time = time.time()-training_start
 print("Training done")
 
-trained_model = BioQAModel.load_from_checkpoint("checkpoints/best-checkpoint.ckpt")
+trained_model = BioQAModel.load_from_checkpoint("checkpoints_1/best-checkpoint.ckpt")
 trained_model.freeze()
 
 def generate_answer(question):
