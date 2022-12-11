@@ -102,6 +102,7 @@ class GSMDataModule(pl.LightningDataModule):
   def __init__(
       self,
       train_df: pd.DataFrame,
+      val_df: pd.DataFrame,
       test_df: pd.DataFrame,
       tokenizer:T5Tokenizer,
       batch_size: int = 8,
@@ -110,6 +111,7 @@ class GSMDataModule(pl.LightningDataModule):
       ):
     super().__init__()
     self.train_df = train_df
+    self.val_df = val_df
     self.test_df = test_df
     self.tokenizer = tokenizer
     self.batch_size = batch_size
@@ -119,6 +121,13 @@ class GSMDataModule(pl.LightningDataModule):
   def setup(self):
     self.train_dataset = GSM8kQADataset(
         self.train_df,
+        self.tokenizer,
+        self.source_max_token_len,
+        self.target_max_token_len
+        )
+    
+    self.val_dataset = GSM8kQADataset(
+        self.val_df,
         self.tokenizer,
         self.source_max_token_len,
         self.target_max_token_len
@@ -138,9 +147,10 @@ class GSMDataModule(pl.LightningDataModule):
         shuffle=True,
         num_workers=4
         )
+
   def val_dataloader(self):
     return DataLoader(
-        self.test_dataset,
+        self.val_dataset,
         batch_size=self.batch_size,
         num_workers=4
         )
@@ -154,9 +164,11 @@ class GSMDataModule(pl.LightningDataModule):
 
 
 class GSMQAModel(pl.LightningModule):
-  def __init__(self, model_name:str):
+  def __init__(self, MODEL_NAME:str):
     super().__init__()
-    self.model = T5ForConditionalGeneration.from_pretrained(model_name, return_dict=True)
+    self.model = T5ForConditionalGeneration.from_pretrained(MODEL_NAME, return_dict=True)
+    self.train_losses = []
+    self.val_losses = []
 
 
   def forward(self, input_ids, attention_mask, labels=None):
@@ -172,6 +184,7 @@ class GSMQAModel(pl.LightningModule):
     attention_mask=batch['attention_mask']
     labels = batch['labels']
     loss, outputs = self(input_ids, attention_mask, labels)
+    self.train_losses.append(loss.item())
     self.log("train_loss", loss, prog_bar=True, logger=True)
     return {"loss": loss, "predictions":outputs, "labels": labels}
 
@@ -180,6 +193,7 @@ class GSMQAModel(pl.LightningModule):
     attention_mask=batch['attention_mask']
     labels = batch['labels']
     loss, outputs = self(input_ids, attention_mask, labels)
+    self.val_losses.append(loss.item())
     self.log("val_loss", loss, prog_bar=True, logger=True)
     return loss
 
@@ -196,10 +210,9 @@ class GSMQAModel(pl.LightningModule):
     return optimizer
 
 
-def generate_answer(question):
+def generate_answer(question, tokenizer:T5Tokenizer, trained_model):
   source_encoding=tokenizer(
       question["question"],
-      question['context'],
       max_length = 396,
       padding="max_length",
       truncation="only_second",
