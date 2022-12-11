@@ -7,8 +7,8 @@
 #SBATCH --mem=16GB                 # Real memory (RAM) required
 #SBATCH --gres=gpu:4               # Generic resources
 #SBATCH --time=05:00:00            # Total run time limit (HH:MM:SS)
-#SBATCH --error=%x.%j.err
-#SBATCH --output=%x.%j.out
+#SBATCH --error=%x.err
+#SBATCH --output=%x.out
 #SBATCH --mail-type=all            # when something happens
 #SBATCH --mail-user=cg4177@nyu.edu # send me mail
 

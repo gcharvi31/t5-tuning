@@ -46,9 +46,9 @@ args = parser.parse_args()
 TRAIN_DATA_JSON = f"{RAW_DATA_DIR}/grade-school-math/grade_school_math/data/train.jsonl"
 TEST_DATA_JSON = f"{RAW_DATA_DIR}/grade-school-math/grade_school_math/data/test.jsonl"
 
-MODEL_NAME = args['model_name']
-BATCH_SIZE = args['batch_size']
-EPOCHS = args['epochs']
+MODEL_NAME = args.model_name
+BATCH_SIZE = args.batch_size
+EPOCHS = args.epochs
 
 logging.info(f"Using {MODEL_NAME} as pretrained base")
 
