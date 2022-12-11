@@ -115,7 +115,7 @@ class GSMDataModule(pl.LightningDataModule):
     self.source_max_token_len = source_max_token_len
     self.target_max_token_len = target_max_token_len
 
-  def setup(self):
+  def setup(self, stage=None):
     self.train_dataset = GSM8kQADataset(
         self.train_df,
         self.tokenizer,
