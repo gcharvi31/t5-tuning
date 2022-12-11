@@ -66,8 +66,8 @@ logging.debug("Generating train and val dataset objects")
 data_module = GSMDataModule(train_df, val_df, test_df, tokenizer, batch_size=BATCH_SIZE)
 data_module.setup()
 
-logging.debug(f"Loading {args['model_name']} pretrained model")
-model = GSMQAModel()
+logging.debug(f"Loading {MODEL_NAME} pretrained model")
+model = GSMQAModel(MODEL_NAME=MODEL_NAME)
 
 # To record the best performing model using checkpoint
 
