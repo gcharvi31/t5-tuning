@@ -26,7 +26,8 @@ RUN_LOGS_DIR = meta_params["RUN_LOGS_DIR"]
 Path(RUN_LOGS_DIR).mkdir(parents=True, exist_ok=True)
 
 # Create and configure logger
-logging.basicConfig(filename = datetime.now().strftime(f'{RUN_LOGS_DIR}/gsm8k_%H_%M_%d_%m_%Y.log'),
+filename = datetime.now().strftime('gsm8k_%H_%M_%d_%m_%Y')
+logging.basicConfig(filename = f'{RUN_LOGS_DIR}/{filename}.log',
                     format='%(asctime)s %(message)s',
                     filemode='w')
 
@@ -92,9 +93,9 @@ trainer = pl.Trainer(
 
 trainer.fit(model, data_module)
 
-trainer.test()  # evaluate the model according to the last checkpoint
+# trainer.test()  # evaluate the model according to the last checkpoint
 
-trained_model = GSMQAModel.load_from_checkpoint(f"{MODEL_CHKPT_DIR}/{CHKPT_FILENAME}.ckpt")
+trained_model = GSMQAModel(MODEL_NAME=MODEL_NAME).load_from_checkpoint(f"{MODEL_CHKPT_DIR}/{CHKPT_FILENAME}.ckpt")
 trained_model.freeze()
 
 val_losses = trained_model.val_losses
@@ -105,8 +106,13 @@ pred_ans = generate_answer(sample_question, tokenizer=tokenizer, trained_model=t
 print("Question: ", sample_question["question"])
 print("Ans: ", pred_ans)
 
-results = {"val_losses": val_losses}
+results = {
+    "model_name": MODEL_NAME,
+    "batch_size": BATCH_SIZE,
+    "epochs": EPOCHS,
+    "fp_precision": FP_PRECISION,
+    "val_losses": val_losses}
 
-results_filename = RUN_LOGS_DIR + "gsm8k.pickle"
+results_filename = f'{RUN_LOGS_DIR}/{filename}.pkl'
 with open (results_filename, 'wb') as handle:
     pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
