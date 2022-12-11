@@ -17,4 +17,4 @@ module load anaconda3/2020.07
 eval "$(conda shell.bash hook)"
 conda activate idls_project_1
 
-python /home/cg4177/t5-tuning/t5_gsm8k.py --batch_size 4 --epochs 2 --model_name t5-base
+python /home/cg4177/t5-tuning/t5_gsm8k.py --batch_size 4 --epochs 2 --fp_precision 16 --model_name t5-base

@@ -40,7 +40,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--model_name', type=str, help='type of t5 model', default="t5-base")
 parser.add_argument('--batch_size', type=int, help='batch size', default=4)
 parser.add_argument('--epochs', type=int, help='number of epochs used in training', default=3)
-# parser.add_argument('--fp_precision', type=int, help='floating point precision', default=16)
+parser.add_argument('--fp_precision', type=int, help='floating point precision', default=16)
 
 args = parser.parse_args()
 
@@ -50,7 +50,7 @@ TEST_DATA_JSON = f"{RAW_DATA_DIR}/grade-school-math/grade_school_math/data/test.
 MODEL_NAME = args.model_name
 BATCH_SIZE = args.batch_size
 EPOCHS = args.epochs
-# FP_PRECISION = args.fp_precision
+FP_PRECISION = args.fp_precision
 
 logging.info(f"Using {MODEL_NAME} as pretrained base")
 
@@ -84,11 +84,10 @@ checkpoint_callback = ModelCheckpoint(
 )
 
 trainer = pl.Trainer(
-    logger = logger,
     callbacks=[checkpoint_callback, TQDMProgressBar(refresh_rate=30)],
     max_epochs=EPOCHS,
-    gpus=1
-    # precision=FP_PRECISION
+    gpus=1,
+    precision=FP_PRECISION
 )
 
 trainer.fit(model, data_module)
