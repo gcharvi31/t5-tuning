@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from sklearn.model_selection import train_test_split
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar
 from transformers import T5Tokenizer
 from gsm8k_dataload import extract_questions_and_answers, GSMDataModule, GSMQAModel, generate_answer
 from params import meta_params
@@ -40,6 +40,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--model_name', type=str, help='type of t5 model', default="t5-base")
 parser.add_argument('--batch_size', type=int, help='batch size', default=4)
 parser.add_argument('--epochs', type=int, help='number of epochs used in training', default=3)
+# parser.add_argument('--fp_precision', type=int, help='floating point precision', default=16)
 
 args = parser.parse_args()
 
@@ -49,6 +50,7 @@ TEST_DATA_JSON = f"{RAW_DATA_DIR}/grade-school-math/grade_school_math/data/test.
 MODEL_NAME = args.model_name
 BATCH_SIZE = args.batch_size
 EPOCHS = args.epochs
+# FP_PRECISION = args.fp_precision
 
 logging.info(f"Using {MODEL_NAME} as pretrained base")
 
@@ -83,10 +85,10 @@ checkpoint_callback = ModelCheckpoint(
 
 trainer = pl.Trainer(
     logger = logger,
-    checkpoint_callback=checkpoint_callback,
+    callbacks=[checkpoint_callback, TQDMProgressBar(refresh_rate=30)],
     max_epochs=EPOCHS,
-    gpus=1,
-    progress_bar_refresh_rate = 30
+    gpus=1
+    # precision=FP_PRECISION
 )
 
 trainer.fit(model, data_module)
