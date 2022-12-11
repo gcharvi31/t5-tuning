@@ -14,6 +14,9 @@ from transformers import T5Tokenizer
 from gsm8k_dataload import extract_questions_and_answers, GSMDataModule, GSMQAModel, generate_answer
 from params import meta_params
 
+# Seeds all the processes including numpy torch and other imported modules - makes for better comparisions
+pl.seed_everything(0)
+
 ### Download gsm8k from Github into scratch folder
 RAW_DATA_DIR = meta_params["RAW_DATA_DIR"]
 Path(RAW_DATA_DIR).mkdir(parents=True, exist_ok=True)
