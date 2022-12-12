@@ -5,6 +5,7 @@ import logging
 import pandas as pd
 import numpy as np
 import pickle
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from sklearn.model_selection import train_test_split
@@ -38,10 +39,13 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 parser = argparse.ArgumentParser()
+
+parser.add_argument('--identifier', type=str, help='identifier for different runs', default="model_1")
 parser.add_argument('--model_name', type=str, help='type of t5 model', default="t5-base")
 parser.add_argument('--batch_size', type=int, help='batch size', default=4)
 parser.add_argument('--epochs', type=int, help='number of epochs used in training', default=3)
 parser.add_argument('--fp_precision', type=int, help='floating point precision', default=16)
+parser.add_argument('--compute_logs', type=str, help='filename to store cpu gpu logs', default='compute_log.csv')
 
 args = parser.parse_args()
 
@@ -52,24 +56,32 @@ MODEL_NAME = args.model_name
 BATCH_SIZE = args.batch_size
 EPOCHS = args.epochs
 FP_PRECISION = args.fp_precision
+COMPUTE_LOGS_FILE = f"{RUN_LOGS_DIR}/{args.identifier + args.compute_logs}"
 
-logging.info(f"Using {MODEL_NAME} as pretrained base")
+logger_pid = subprocess.Popen(
+    ['python', 'log_gpu_cpu_stats.py',
+     COMPUTE_LOGS_FILE,
+     '--loop',  '30',  # Interval between measurements, in seconds (optional, default=1)
+    ])
+logger.info('Started logging compute utilisation')
 
-logging.debug("Generating tokenizer from pretrained model")
+logger.info(f"Using {MODEL_NAME} as pretrained base")
+
+logger.debug("Generating tokenizer from pretrained model")
 tokenizer = T5Tokenizer.from_pretrained(MODEL_NAME)
 
-logging.debug("Loading raw data from json to dataframe")
+logger.debug("Loading raw data from json to dataframe")
 df = extract_questions_and_answers(path=TRAIN_DATA_JSON)
 train_df, val_df = train_test_split(df, test_size=0.05)
 test_df = extract_questions_and_answers(path=TEST_DATA_JSON)
 
-logging.debug(f"Train data size: {train_df.shape}, Val data size: {val_df.shape}, Test data size: {test_df.shape}")
+logger.debug(f"Train data size: {train_df.shape}, Val data size: {val_df.shape}, Test data size: {test_df.shape}")
 
-logging.debug("Generating train and val dataset objects")
+logger.debug("Generating train and val dataset objects")
 data_module = GSMDataModule(train_df, val_df, test_df, tokenizer, batch_size=BATCH_SIZE)
 data_module.setup()
 
-logging.debug(f"Loading {MODEL_NAME} pretrained model")
+logger.debug(f"Loading {MODEL_NAME} pretrained model")
 model = GSMQAModel(MODEL_NAME=MODEL_NAME)
 
 # To record the best performing model using checkpoint
@@ -91,12 +103,19 @@ trainer = pl.Trainer(
     precision=FP_PRECISION
 )
 
+logger.debug("Starting training ...")
+training_start = time.time()
 trainer.fit(model, data_module)
+training_time = time.time()-training_start
+logger.debug("Training completed")
 
-# trainer.test()  # evaluate the model according to the last checkpoint
 
-trained_model = GSMQAModel(MODEL_NAME=MODEL_NAME).load_from_checkpoint(f"{MODEL_CHKPT_DIR}/{CHKPT_FILENAME}.ckpt")
+trained_model = GSMQAModel.load_from_checkpoint(f"{MODEL_CHKPT_DIR}/{CHKPT_FILENAME}.ckpt",
+ MODEL_NAME=MODEL_NAME)
 trained_model.freeze()
+
+# evaluate the model according to the last checkpoint
+logger.info(trainer.test(trained_model, datamodule=data_module, verbose=True))
 
 val_losses = trained_model.val_losses
 
@@ -106,13 +125,17 @@ pred_ans = generate_answer(sample_question, tokenizer=tokenizer, trained_model=t
 print("Question: ", sample_question["question"])
 print("Ans: ", pred_ans)
 
+logger_pid.terminate()
+logger.info('Terminated the compute utilisation logger background process')
+
 results = {
     "model_name": MODEL_NAME,
     "batch_size": BATCH_SIZE,
     "epochs": EPOCHS,
     "fp_precision": FP_PRECISION,
-    "val_losses": val_losses}
+    "val_losses": val_losses,
+    "training_time": training_time}
 
-results_filename = f'{RUN_LOGS_DIR}/{filename}.pkl'
+results_filename = f'{RUN_LOGS_DIR}/{args.identifier}_{filename}.pkl'
 with open (results_filename, 'wb') as handle:
     pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
