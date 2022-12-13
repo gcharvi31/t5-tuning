@@ -1,0 +1,57 @@
+[rank: 0] Global seed set to 0
+/scratch/cg4177/envs_dirs/idls_project_1/lib/python3.7/site-packages/transformers/models/t5/tokenization_t5.py:173: FutureWarning: This tokenizer was incorrectly instantiated with a model max length of 512 which will be corrected in Transformers v5.
+For now, this behavior is kept to avoid breaking backwards compatibility when padding/encoding with `truncation is True`.
+- Be aware that you SHOULD NOT rely on t5-base automatically truncating your input to 512 when padding/encoding.
+- If you want to encode/pad to sequences longer than 512 you can either instantiate this tokenizer with `model_max_length` or pass `max_length` when encoding/padding.
+- To avoid this warning, please instantiate this tokenizer with `model_max_length` set to your preferred value.
+  FutureWarning,
+/scratch/cg4177/envs_dirs/idls_project_1/lib/python3.7/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py:447: LightningDeprecationWarning: Setting `Trainer(gpus=1)` is deprecated in v1.7 and will be removed in v2.0. Please use `Trainer(accelerator='gpu', devices=1)` instead.
+  f"Setting `Trainer(gpus={gpus!r})` is deprecated in v1.7 and will be removed"
+/scratch/cg4177/envs_dirs/idls_project_1/lib/python3.7/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py:467: UserWarning: The flag `devices=1` will be ignored, instead the device specific number 1 will be used
+  f"The flag `devices={devices}` will be ignored, "
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+[rank: 0] Global seed set to 0
+Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/1
+----------------------------------------------------------------------------------------------------
+distributed_backend=nccl
+All distributed processes registered. Starting with 1 processes
+----------------------------------------------------------------------------------------------------
+
+/scratch/cg4177/envs_dirs/idls_project_1/lib/python3.7/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:604: UserWarning: Checkpoint directory /scratch/cg4177/t5-tuning-checkpoints/13_12_2022 exists and is not empty.
+  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/scratch/cg4177/envs_dirs/idls_project_1/lib/python3.7/site-packages/transformers/optimization.py:310: FutureWarning: This implementation of AdamW is deprecated and will be removed in a future version. Use the PyTorch implementation torch.optim.AdamW instead, or set `no_deprecation_warning=True` to disable this warning
+  FutureWarning,
+
+  | Name  | Type                       | Params
+-----------------------------------------------------
+0 | model | T5ForConditionalGeneration | 222 M 
+-----------------------------------------------------
+222 M     Trainable params
+0         Non-trainable params
+222 M     Total params
+891.614   Total estimated model params size (MB)
+SLURM auto-requeueing enabled. Setting signal handlers.
+/scratch/cg4177/envs_dirs/idls_project_1/lib/python3.7/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:229: PossibleUserWarning: The dataloader, val_dataloader 0, does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` (try 64 which is the number of cpus on this machine) in the `DataLoader` init to improve performance.
+  category=PossibleUserWarning,
+/scratch/cg4177/envs_dirs/idls_project_1/lib/python3.7/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:229: PossibleUserWarning: The dataloader, train_dataloader, does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` (try 64 which is the number of cpus on this machine) in the `DataLoader` init to improve performance.
+  category=PossibleUserWarning,
+[W reducer.cpp:1298] Warning: find_unused_parameters=True was specified in DDP constructor, but did not find any unused parameters in the forward pass. This flag results in an extra traversal of the autograd graph every iteration,  which can adversely affect performance. If your model indeed never has any unused parameters in the forward pass, consider turning this flag off. Note that this warning may be a false positive if your model has flow control causing later iterations to have unused parameters. (function operator())
+Metric val_loss improved. New best score: 0.960
+Epoch 0, global step 1775: 'val_loss' reached 0.96045 (best 0.96045), saving model to '/scratch/cg4177/t5-tuning-checkpoints/13_12_2022/gsm_t5-base-v2.ckpt' as top 1
+Metric val_loss improved by 0.034 >= min_delta = 0.0. New best score: 0.927
+Epoch 1, global step 3550: 'val_loss' reached 0.92672 (best 0.92672), saving model to '/scratch/cg4177/t5-tuning-checkpoints/13_12_2022/gsm_t5-base-v2.ckpt' as top 1
+Epoch 2, global step 5325: 'val_loss' was not in top 1
+Metric val_loss improved by 0.014 >= min_delta = 0.0. New best score: 0.913
+Epoch 3, global step 7100: 'val_loss' reached 0.91255 (best 0.91255), saving model to '/scratch/cg4177/t5-tuning-checkpoints/13_12_2022/gsm_t5-base-v2.ckpt' as top 1
+Epoch 4, global step 8875: 'val_loss' was not in top 1
+Epoch 5, global step 10650: 'val_loss' was not in top 1
+Monitored metric val_loss did not improve in the last 3 records. Best score: 0.913. Signaling Trainer to stop.
+Epoch 6, global step 12425: 'val_loss' was not in top 1
+[rank: 0] Global seed set to 0
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/scratch/cg4177/envs_dirs/idls_project_1/lib/python3.7/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:229: PossibleUserWarning: The dataloader, test_dataloader 0, does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` (try 64 which is the number of cpus on this machine) in the `DataLoader` init to improve performance.
+  category=PossibleUserWarning,
