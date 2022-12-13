@@ -192,7 +192,7 @@ class GSMQAModel(pl.LightningModule):
     attention_mask=batch['attention_mask']
     labels = batch['labels']
     loss, outputs = self(input_ids, attention_mask, labels)
-    self.val_losses.append(loss)
+    self.val_losses.append(loss.item())
     self.log("val_loss", loss, prog_bar=True, logger=True, sync_dist=True)
     return loss
 

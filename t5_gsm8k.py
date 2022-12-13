@@ -129,6 +129,8 @@ trainer.fit(model, data_module)
 training_time = time.time()-training_start
 logger.debug("Training completed")
 
+val_losses = model.val_losses
+logger.info(val_losses)
 
 trained_model = GSMQAModel.load_from_checkpoint(f"{MODEL_CHKPT_DIR}/{CHKPT_FILENAME}.ckpt",
  MODEL_NAME=MODEL_NAME)
@@ -136,9 +138,6 @@ trained_model.freeze()
 
 # evaluate the model according to the last checkpoint
 logger.info(trainer.test(trained_model, datamodule=data_module, verbose=True))
-
-val_losses = trained_model.val_losses
-print(val_losses)
 
 sample_question = val_df.iloc[12]
 pred_ans = generate_answer(sample_question, tokenizer=tokenizer, trained_model=trained_model)  # Predicted answer
