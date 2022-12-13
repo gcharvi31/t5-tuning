@@ -10,13 +10,13 @@ from datetime import datetime
 from pathlib import Path
 from sklearn.model_selection import train_test_split
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar
+from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar, EarlyStopping
 from transformers import T5Tokenizer
 from gsm8k_dataload import extract_questions_and_answers, GSMDataModule, GSMQAModel, generate_answer
 from params import meta_params
 
 # Seeds all the processes including numpy torch and other imported modules - makes for better comparisions
-pl.seed_everything(0)
+pl.seed_everything(0, workers=True)
 
 ### Download gsm8k from Github into scratch folder
 RAW_DATA_DIR = meta_params["RAW_DATA_DIR"]
@@ -27,7 +27,7 @@ RUN_LOGS_DIR = meta_params["RUN_LOGS_DIR"]
 Path(RUN_LOGS_DIR).mkdir(parents=True, exist_ok=True)
 
 # Create and configure logger
-filename = datetime.now().strftime('gsm8k_%H_%M_%d_%m_%Y')
+filename = datetime.now().strftime('gsm_%H_%M_%d_%m_%Y')
 logging.basicConfig(filename = f'{RUN_LOGS_DIR}/{filename}.log',
                     format='%(asctime)s %(message)s',
                     filemode='w')
@@ -43,9 +43,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--identifier', type=str, help='identifier for different runs', default="model_1")
 parser.add_argument('--model_name', type=str, help='type of t5 model', default="t5-base")
 parser.add_argument('--batch_size', type=int, help='batch size', default=4)
-parser.add_argument('--epochs', type=int, help='number of epochs used in training', default=3)
+parser.add_argument('--epochs', type=int, help='number of epochs used in training', default=5)
 parser.add_argument('--fp_precision', type=int, help='floating point precision', default=16)
-parser.add_argument('--compute_logs', type=str, help='filename to store cpu gpu logs', default='compute_log.csv')
+parser.add_argument('--devices', type=int, help='GPUs to use per node', default=1)
 
 args = parser.parse_args()
 
@@ -56,7 +56,8 @@ MODEL_NAME = args.model_name
 BATCH_SIZE = args.batch_size
 EPOCHS = args.epochs
 FP_PRECISION = args.fp_precision
-COMPUTE_LOGS_FILE = f"{RUN_LOGS_DIR}/{args.identifier + args.compute_logs}"
+DEVICES = args.devices
+COMPUTE_LOGS_FILE = f"{RUN_LOGS_DIR}/{args.identifier + 'compute_log.csv'}"
 
 logger_pid = subprocess.Popen(
     ['python', 'log_gpu_cpu_stats.py',
@@ -85,8 +86,7 @@ logger.debug(f"Loading {MODEL_NAME} pretrained model")
 model = GSMQAModel(MODEL_NAME=MODEL_NAME)
 
 # To record the best performing model using checkpoint
-
-CHKPT_FILENAME = f"gsm8k_{MODEL_NAME}"
+CHKPT_FILENAME = f"gsm_{MODEL_NAME}"
 checkpoint_callback = ModelCheckpoint(
     dirpath=MODEL_CHKPT_DIR,
     filename=CHKPT_FILENAME,
@@ -96,12 +96,24 @@ checkpoint_callback = ModelCheckpoint(
     mode="min"
 )
 
+# Add early stopping
+early_stopping_callback = EarlyStopping(
+    monitor="val_loss",
+    patience=3,
+    strict=False,
+    verbose=True,
+    mode="min"
+    )
+
 trainer = pl.Trainer(
-    callbacks=[checkpoint_callback, TQDMProgressBar(refresh_rate=30)],
+    callbacks=[early_stopping_callback, checkpoint_callback, TQDMProgressBar(refresh_rate=30)],
     max_epochs=EPOCHS,
     gpus=1,
-    precision=FP_PRECISION
-)
+    precision=FP_PRECISION,
+    accelerator="gpu",
+    devices=DEVICES,
+    strategy="ddp"
+    )
 
 logger.debug("Starting training ...")
 training_start = time.time()
@@ -118,6 +130,7 @@ trained_model.freeze()
 logger.info(trainer.test(trained_model, datamodule=data_module, verbose=True))
 
 val_losses = trained_model.val_losses
+print(val_losses)
 
 sample_question = val_df.iloc[12]
 pred_ans = generate_answer(sample_question, tokenizer=tokenizer, trained_model=trained_model)  # Predicted answer
@@ -134,7 +147,8 @@ results = {
     "epochs": EPOCHS,
     "fp_precision": FP_PRECISION,
     "val_losses": val_losses,
-    "training_time": training_time}
+    "training_time": training_time
+    }
 
 results_filename = f'{RUN_LOGS_DIR}/{args.identifier}_{filename}.pkl'
 with open (results_filename, 'wb') as handle:
