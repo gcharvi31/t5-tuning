@@ -103,6 +103,7 @@ class GSMDataModule(pl.LightningDataModule):
       test_df: pd.DataFrame,
       tokenizer:T5Tokenizer,
       batch_size: int = 8,
+      num_workers: int = 2,
       source_max_token_len: int = SOURCE_MAX_TOKEN_LEN,
       target_max_token_len: int = TARGET_MAX_TOKEN_LEN,
       ):
@@ -112,6 +113,7 @@ class GSMDataModule(pl.LightningDataModule):
     self.test_df = test_df
     self.tokenizer = tokenizer
     self.batch_size = batch_size
+    self.num_workers = num_workers
     self.source_max_token_len = source_max_token_len
     self.target_max_token_len = target_max_token_len
 
@@ -142,21 +144,21 @@ class GSMDataModule(pl.LightningDataModule):
         self.train_dataset,
         batch_size=self.batch_size,
         shuffle=True,
-        num_workers=4
+        num_workers=self.num_workers
         )
 
   def val_dataloader(self):
     return DataLoader(
         self.val_dataset,
         batch_size=self.batch_size,
-        num_workers=4
+        num_workers=self.num_workers
         )
 
   def test_dataloader(self):
     return DataLoader(
         self.test_dataset,
         batch_size=1,
-        num_workers=4
+        num_workers=self.num_workers
         )
 
 
@@ -182,7 +184,7 @@ class GSMQAModel(pl.LightningModule):
     labels = batch['labels']
     loss, outputs = self(input_ids, attention_mask, labels)
     self.train_losses.append(loss.item())
-    self.log("train_loss", loss, prog_bar=True, logger=True)
+    self.log("train_loss", loss, prog_bar=True, logger=True, sync_dist=True)
     return {"loss": loss, "predictions":outputs, "labels": labels}
 
   def validation_step(self, batch, batch_idx):
@@ -190,8 +192,8 @@ class GSMQAModel(pl.LightningModule):
     attention_mask=batch['attention_mask']
     labels = batch['labels']
     loss, outputs = self(input_ids, attention_mask, labels)
-    self.val_losses.append(loss.item())
-    self.log("val_loss", loss, prog_bar=True, logger=True)
+    self.val_losses.append(loss)
+    self.log("val_loss", loss, prog_bar=True, logger=True, sync_dist=True)
     return loss
 
   def test_step(self, batch, batch_idx):
@@ -199,7 +201,7 @@ class GSMQAModel(pl.LightningModule):
     attention_mask=batch['attention_mask']
     labels = batch['labels']
     loss, outputs = self(input_ids, attention_mask, labels)
-    self.log("test_loss", loss, prog_bar=True, logger=True)
+    self.log("test_loss", loss, prog_bar=True, logger=True, sync_dist=True)
     return loss
 
   def configure_optimizers(self):

@@ -26,9 +26,15 @@ Path(MODEL_CHKPT_DIR).mkdir(parents=True, exist_ok=True)
 RUN_LOGS_DIR = meta_params["RUN_LOGS_DIR"]
 Path(RUN_LOGS_DIR).mkdir(parents=True, exist_ok=True)
 
-# Create and configure logger
+
 filename = datetime.now().strftime('gsm_%H_%M_%d_%m_%Y')
-logging.basicConfig(filename = f'{RUN_LOGS_DIR}/{filename}.log',
+foldername = datetime.now().strftime('%d_%m_%Y')
+output_folder = f'{RUN_LOGS_DIR}/{foldername}'
+Path(output_folder).mkdir(parents=True, exist_ok=True)
+model_chkpt_folder = f'{MODEL_CHKPT_DIR}/{foldername}'
+Path(model_chkpt_folder).mkdir(parents=True, exist_ok=True)
+# Create and configure logger
+logging.basicConfig(filename = f'{output_folder}/{filename}.log',
                     format='%(asctime)s %(message)s',
                     filemode='w')
 
@@ -46,6 +52,7 @@ parser.add_argument('--batch_size', type=int, help='batch size', default=4)
 parser.add_argument('--epochs', type=int, help='number of epochs used in training', default=5)
 parser.add_argument('--fp_precision', type=int, help='floating point precision', default=16)
 parser.add_argument('--devices', type=int, help='GPUs to use per node', default=1)
+parser.add_argument('--num_workers', type=int, help='Number of workers', default=1)
 
 args = parser.parse_args()
 
@@ -57,7 +64,8 @@ BATCH_SIZE = args.batch_size
 EPOCHS = args.epochs
 FP_PRECISION = args.fp_precision
 DEVICES = args.devices
-COMPUTE_LOGS_FILE = f"{RUN_LOGS_DIR}/{args.identifier + 'compute_log.csv'}"
+NUM_WORKERS = args.num_workers
+COMPUTE_LOGS_FILE = f"{output_folder}/{args.identifier + 'compute_log.csv'}"
 
 logger_pid = subprocess.Popen(
     ['python', 'log_gpu_cpu_stats.py',
@@ -79,7 +87,7 @@ test_df = extract_questions_and_answers(path=TEST_DATA_JSON)
 logger.debug(f"Train data size: {train_df.shape}, Val data size: {val_df.shape}, Test data size: {test_df.shape}")
 
 logger.debug("Generating train and val dataset objects")
-data_module = GSMDataModule(train_df, val_df, test_df, tokenizer, batch_size=BATCH_SIZE)
+data_module = GSMDataModule(train_df, val_df, test_df, tokenizer, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
 data_module.setup()
 
 logger.debug(f"Loading {MODEL_NAME} pretrained model")
@@ -88,7 +96,7 @@ model = GSMQAModel(MODEL_NAME=MODEL_NAME)
 # To record the best performing model using checkpoint
 CHKPT_FILENAME = f"gsm_{MODEL_NAME}"
 checkpoint_callback = ModelCheckpoint(
-    dirpath=MODEL_CHKPT_DIR,
+    dirpath=model_chkpt_folder,
     filename=CHKPT_FILENAME,
     save_top_k=1,
     verbose=True,
@@ -142,14 +150,17 @@ logger_pid.terminate()
 logger.info('Terminated the compute utilisation logger background process')
 
 results = {
+    "identifier": args.identifier,
     "model_name": MODEL_NAME,
     "batch_size": BATCH_SIZE,
     "epochs": EPOCHS,
     "fp_precision": FP_PRECISION,
+    "devices": DEVICES,
+    "num_workers": NUM_WORKERS,
     "val_losses": val_losses,
     "training_time": training_time
     }
 
-results_filename = f'{RUN_LOGS_DIR}/{args.identifier}_{filename}.pkl'
+results_filename = f'{output_folder}/{args.identifier}.pkl'
 with open (results_filename, 'wb') as handle:
     pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
