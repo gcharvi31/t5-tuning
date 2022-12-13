@@ -29,7 +29,7 @@ Path(RUN_LOGS_DIR).mkdir(parents=True, exist_ok=True)
 
 filename = datetime.now().strftime('gsm_%H_%M_%d_%m_%Y')
 foldername = datetime.now().strftime('%d_%m_%Y')
-output_folder = f'{RUN_LOGS_DIR}/{foldername}'
+output_folder = f'{RUN_LOGS_DIR}/gsm/{foldername}'
 Path(output_folder).mkdir(parents=True, exist_ok=True)
 model_chkpt_folder = f'{MODEL_CHKPT_DIR}/{foldername}'
 Path(model_chkpt_folder).mkdir(parents=True, exist_ok=True)
@@ -65,7 +65,7 @@ EPOCHS = args.epochs
 FP_PRECISION = args.fp_precision
 DEVICES = args.devices
 NUM_WORKERS = args.num_workers
-COMPUTE_LOGS_FILE = f"{output_folder}/{args.identifier + 'compute_log.csv'}"
+COMPUTE_LOGS_FILE = f"{output_folder}/log_compute_{args.identifier}.csv"
 
 logger_pid = subprocess.Popen(
     ['python', 'log_gpu_cpu_stats.py',
@@ -94,7 +94,7 @@ logger.debug(f"Loading {MODEL_NAME} pretrained model")
 model = GSMQAModel(MODEL_NAME=MODEL_NAME)
 
 # To record the best performing model using checkpoint
-CHKPT_FILENAME = f"gsm_{MODEL_NAME}"
+CHKPT_FILENAME = f"gsm_{args.identifier}"
 checkpoint_callback = ModelCheckpoint(
     dirpath=model_chkpt_folder,
     filename=CHKPT_FILENAME,
@@ -107,7 +107,7 @@ checkpoint_callback = ModelCheckpoint(
 # Add early stopping
 early_stopping_callback = EarlyStopping(
     monitor="val_loss",
-    patience=3,
+    patience=5,
     strict=False,
     verbose=True,
     mode="min"
@@ -130,7 +130,6 @@ training_time = time.time()-training_start
 logger.debug("Training completed")
 
 val_losses = model.val_losses
-logger.info(val_losses)
 
 trained_model = GSMQAModel.load_from_checkpoint(f"{MODEL_CHKPT_DIR}/{CHKPT_FILENAME}.ckpt",
  MODEL_NAME=MODEL_NAME)
@@ -160,6 +159,6 @@ results = {
     "training_time": training_time
     }
 
-results_filename = f'{output_folder}/{args.identifier}.pkl'
+results_filename = f'{output_folder}/{args.identifier}.pickle'
 with open (results_filename, 'wb') as handle:
     pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
