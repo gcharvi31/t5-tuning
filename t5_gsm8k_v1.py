@@ -106,17 +106,17 @@ checkpoint_callback = ModelCheckpoint(
     mode="min"
 )
 
-# # Add early stopping
-# early_stopping_callback = EarlyStopping(
-#     monitor="val_loss",
-#     patience=5,
-#     strict=False,
-#     verbose=True,
-#     mode="min"
-#     )
+# Add early stopping
+early_stopping_callback = EarlyStopping(
+    monitor="val_loss",
+    patience=5,
+    strict=False,
+    verbose=True,
+    mode="min"
+    )
 
 trainer = pl.Trainer(
-    callbacks=[checkpoint_callback, TQDMProgressBar(refresh_rate=30)],
+    callbacks=[early_stopping_callback, checkpoint_callback, TQDMProgressBar(refresh_rate=30)],
     max_epochs=EPOCHS,
     precision=FP_PRECISION,
     accelerator="gpu",

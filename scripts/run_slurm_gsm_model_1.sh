@@ -2,11 +2,12 @@
 
 #SBATCH --requeue                  # Return job to the queue if preempted
 #SBATCH --nodes=1
-#SBATCH --job-name=gsm_t5-base              # Assign an short name to your job
+#SBATCH --ntasks-per-node=1
+#SBATCH --job-name=gsm_model_1              # Assign an short name to your job
 #SBATCH --cpus-per-task=1          # Cores per task (>1 if multithread tasks)
 #SBATCH --mem=16GB                 # Real memory (RAM) required
-#SBATCH --gres=gpu:1               # Generic resources
-#SBATCH --time=05:00:00            # Total run time limit (HH:MM:SS)
+#SBATCH --gres=gpu:rtx8000:1               # Generic resources
+#SBATCH --time=06:00:00            # Total run time limit (HH:MM:SS)
 #SBATCH --error=%x.err
 #SBATCH --output=%x.out
 #SBATCH --mail-type=all            # when something happens

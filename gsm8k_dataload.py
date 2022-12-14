@@ -29,7 +29,7 @@ def read_jsonl(path: str):
 def extract_questions_and_answers(path):
   data = read_jsonl(path=path)
   questions = [i['question'] for i in data]
-  answer_text = ["The answer is "+ ANS_RE.search(i['answer']).group(1).strip().replace(",", "") for i in data]
+  answer_text = [ANS_RE.search(i['answer']).group(1).strip().replace(",", "") for i in data]
 
   assert(len(questions) == len(answer_text))
 
