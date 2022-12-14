@@ -53,7 +53,7 @@ parser.add_argument('--epochs', type=int, help='number of epochs used in trainin
 parser.add_argument('--fp_precision', type=int, help='floating point precision', default=16)
 parser.add_argument('--devices', type=int, help='GPUs to use per node', default=1)
 parser.add_argument('--num_workers', type=int, help='Number of workers', default=1)
-parser.add_argument('--strategy', type=str, help='training strategy of Trainer', default="None")
+parser.add_argument('--strategy', type=str, help='training strategy of Trainer', default=None)
 
 args = parser.parse_args()
 
