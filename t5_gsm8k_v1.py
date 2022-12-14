@@ -132,18 +132,21 @@ logger.debug("Training completed")
 
 val_losses = model.val_losses
 
-trained_model = GSMQAModel.load_from_checkpoint(f"{MODEL_CHKPT_DIR}/{CHKPT_FILENAME}.ckpt",
- MODEL_NAME=MODEL_NAME)
-trained_model.freeze()
+try:
+    trained_model = GSMQAModel.load_from_checkpoint(f"{model_chkpt_folder}/{CHKPT_FILENAME}.ckpt",
+    MODEL_NAME=MODEL_NAME)
+    trained_model.freeze()
 
-# evaluate the model according to the last checkpoint
-logger.info(trainer.test(trained_model, datamodule=data_module, verbose=True))
+    # evaluate the model according to the last checkpoint
+    logger.info(trainer.test(trained_model, datamodule=data_module, verbose=True))
 
-sample_question = val_df.iloc[12]
-pred_ans = generate_answer(sample_question, tokenizer=tokenizer, trained_model=trained_model)  # Predicted answer
+    sample_question = val_df.iloc[12]
+    pred_ans = generate_answer(sample_question, tokenizer=tokenizer, trained_model=trained_model)  # Predicted answer
 
-print("Question: ", sample_question["question"])
-print("Ans: ", pred_ans)
+    print("Question: ", sample_question["question"])
+    print("Ans: ", pred_ans)
+except:
+    logger.exception("Error in inference")
 
 logger_pid.terminate()
 logger.info('Terminated the compute utilisation logger background process')
