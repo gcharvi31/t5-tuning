@@ -20,14 +20,8 @@ from params import meta_params
 # Seeds all the processes including numpy torch and other imported modules - makes for better comparisions
 pl.seed_everything(0, workers=True)
 
-# step1: Get NEPTUNE_API_TOKEN from environment variable
+# Get NEPTUNE_API_TOKEN from environment variable
 api_token = os.environ['NEPTUNE_API_TOKEN']
-
-# step2: Initialize Neptune and create new Neptune run
-run = neptune.init(
-    project="charvig/t5-gsm",
-    api_token=api_token
-)
 
 
 ### Download gsm8k from Github into scratch folder
@@ -142,7 +136,7 @@ trainer = pl.Trainer(
     accelerator="gpu",
     devices=DEVICES,
     strategy=STRATEGY,
-    logger=csv_logger,
+    logger=neptune_logger,
     )
 
 logger.debug("Starting training ...")

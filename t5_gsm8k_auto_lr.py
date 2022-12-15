@@ -23,13 +23,6 @@ pl.seed_everything(0, workers=True)
 # step1: Get NEPTUNE_API_TOKEN from environment variable
 api_token = os.environ['NEPTUNE_API_TOKEN']
 
-# step2: Initialize Neptune and create new Neptune run
-run = neptune.init(
-    project="charvig/t5-gsm",
-    api_token=api_token
-)
-
-
 ### Download gsm8k from Github into scratch folder
 RAW_DATA_DIR = meta_params["RAW_DATA_DIR"]
 Path(RAW_DATA_DIR).mkdir(parents=True, exist_ok=True)
@@ -142,8 +135,9 @@ trainer = pl.Trainer(
     accelerator="gpu",
     devices=DEVICES,
     strategy=STRATEGY,
-    logger=csv_logger,
-    auto_lr_find=True
+    logger=neptune_logger,
+    auto_lr_find=True,
+    log_gpu_memory='all'
     )
 
 ### Tune to find the learning rate
