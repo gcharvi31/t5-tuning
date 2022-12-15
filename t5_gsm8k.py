@@ -25,9 +25,8 @@ api_token = os.environ['NEPTUNE_API_TOKEN']
 
 # step2: Initialize Neptune and create new Neptune run
 run = neptune.init(
-    project='t5/gsm',
-    api_token=api_token,
-    tags = "t5 gsm"
+    project="charvig/t5-gsm",
+    api_token=api_token
 )
 
 
@@ -85,7 +84,7 @@ STRATEGY = args.strategy
 csv_logger = CSVLogger(save_dir=output_folder)
 neptune_logger = NeptuneLogger(
     api_key=api_token,
-    project='t5/gsm',
+    project='charvig/t5-gsm',
     tags = ['finetune', 't5'],
     log_model_checkpoints=False
 )
