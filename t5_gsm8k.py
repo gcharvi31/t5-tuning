@@ -6,17 +6,30 @@ import pandas as pd
 import numpy as np
 import pickle
 import subprocess
+import neptune.new as neptune
 from datetime import datetime
 from pathlib import Path
 from sklearn.model_selection import train_test_split
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar, EarlyStopping
+from pytorch_lightning.loggers import CSVLogger, NeptuneLogger
 from transformers import T5Tokenizer
 from gsm8k_dataload import extract_questions_and_answers, GSMDataModule, GSMQAModel, generate_answer
 from params import meta_params
 
 # Seeds all the processes including numpy torch and other imported modules - makes for better comparisions
 pl.seed_everything(0, workers=True)
+
+# step1: Get NEPTUNE_API_TOKEN from environment variable
+api_token = os.environ['NEPTUNE_API_TOKEN']
+
+# step2: Initialize Neptune and create new Neptune run
+run = neptune.init(
+    project='t5/gsm',
+    api_token=api_token,
+    tags = "t5 gsm"
+)
+
 
 ### Download gsm8k from Github into scratch folder
 RAW_DATA_DIR = meta_params["RAW_DATA_DIR"]
@@ -68,6 +81,14 @@ DEVICES = args.devices
 NUM_WORKERS = args.num_workers
 COMPUTE_LOGS_FILE = f"{output_folder}/log_compute_{args.identifier}.csv"
 STRATEGY = args.strategy
+
+csv_logger = CSVLogger(save_dir=output_folder)
+neptune_logger = NeptuneLogger(
+    api_key=api_token,
+    project='t5/gsm',
+    tags = ['finetune', 't5'],
+    log_model_checkpoints=False
+)
 
 logger_pid = subprocess.Popen(
     ['python', 'log_gpu_cpu_stats.py',
@@ -121,7 +142,8 @@ trainer = pl.Trainer(
     precision=FP_PRECISION,
     accelerator="gpu",
     devices=DEVICES,
-    strategy=STRATEGY
+    strategy=STRATEGY,
+    logger=csv_logger,
     )
 
 logger.debug("Starting training ...")
@@ -131,6 +153,7 @@ training_time = time.time()-training_start
 logger.debug("Training completed")
 
 val_losses = model.val_losses
+train_losses = model.train_losses
 
 try:
     trained_model = GSMQAModel.load_from_checkpoint(f"{model_chkpt_folder}/{CHKPT_FILENAME}.ckpt",
@@ -160,6 +183,7 @@ results = {
     "devices": DEVICES,
     "num_workers": NUM_WORKERS,
     "val_losses": val_losses,
+    "train_losses": train_losses,
     "training_time": training_time
     }
 
