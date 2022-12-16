@@ -12,7 +12,7 @@ from pathlib import Path
 from sklearn.model_selection import train_test_split
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar, EarlyStopping
-from pytorch_lightning.loggers import CSVLogger, NeptuneLogger
+from pytorch_lightning.loggers import CSVLogger, NeptuneLogger, TensorBoardLogger
 from transformers import T5Tokenizer
 from gsm8k_dataload import extract_questions_and_answers, GSMDataModule, GSMQAModel, generate_answer
 from params import meta_params
@@ -75,6 +75,7 @@ NUM_WORKERS = args.num_workers
 COMPUTE_LOGS_FILE = f"{output_folder}/log_compute_{args.identifier}.csv"
 STRATEGY = args.strategy
 
+# define loggers for model metrics
 csv_logger = CSVLogger(save_dir=output_folder)
 neptune_logger = NeptuneLogger(
     api_key=api_token,
@@ -82,6 +83,7 @@ neptune_logger = NeptuneLogger(
     tags = ['finetune', 't5'],
     log_model_checkpoints=False
 )
+tb_logger = TensorBoardLogger(save_dir=output_folder, name=args.identifier)
 
 logger_pid = subprocess.Popen(
     ['python', 'log_gpu_cpu_stats.py',
@@ -136,7 +138,7 @@ trainer = pl.Trainer(
     accelerator="gpu",
     devices=DEVICES,
     strategy=STRATEGY,
-    logger=neptune_logger
+    logger=tb_logger,
     )
 
 logger.debug("Starting training ...")

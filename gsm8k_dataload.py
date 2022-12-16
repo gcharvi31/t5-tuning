@@ -184,7 +184,7 @@ class GSMQAModel(pl.LightningModule):
     labels = batch['labels']
     loss, outputs = self(input_ids, attention_mask, labels)
     self.train_losses.append(loss.item())
-    self.log("train_loss", loss, prog_bar=True, logger=True)
+    self.log("train_loss", loss, prog_bar=True, logger=True, sync_dist=True)
     return {"loss": loss, "predictions":outputs, "labels": labels}
 
   def validation_step(self, batch, batch_idx):
@@ -193,7 +193,7 @@ class GSMQAModel(pl.LightningModule):
     labels = batch['labels']
     loss, outputs = self(input_ids, attention_mask, labels)
     self.val_losses.append(loss.item())
-    self.log("val_loss", loss, prog_bar=True, logger=True)
+    self.log("val_loss", loss, prog_bar=True, logger=True, sync_dist=True)
     return loss
 
   def test_step(self, batch, batch_idx):
@@ -201,7 +201,7 @@ class GSMQAModel(pl.LightningModule):
     attention_mask=batch['attention_mask']
     labels = batch['labels']
     loss, outputs = self(input_ids, attention_mask, labels)
-    self.log("test_loss", loss, prog_bar=True, logger=True)
+    self.log("test_loss", loss, prog_bar=True, logger=True, sync_dist=True)
     return loss
 
   def configure_optimizers(self):
