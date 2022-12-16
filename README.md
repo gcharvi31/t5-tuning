@@ -52,24 +52,24 @@ We recorded the following metrics across various training configurations -
 We used these to evaluate scaling performance and the ability to train better models on given hardware.
 
 ### 1. Validation Loss
-![Val Loss](/graphs/val_loss.png)
+![Val Loss](/graphs_new/val_loss.png)
 
 ### 2. Training Time
-![Training Time](/graphs/training_time.png)
+![Training Time](/graphs_new/training_time.png)
 
 ### 3. GPU Utilization
-![Bio GPU Util](/graphs/gpu_3_bio.png)
-![GSM GPU Util](/graphs/gpu_3_gsm.png)
+![Bio GPU Util](/graphs_new/gpu_3_bio.png)
+![GSM GPU Util](/graphs_new/gpu_3_gsm.png)
 
 ### 4. GPU Temperature
-![Training Time](/graphs/max_temp.png)
+![Training Time](/graphs_new/max_temp.png)
 
 ### Scaling Efficiency
-![Scaling Efficiency](/graphs/scaling_performance.png)
+![Scaling Efficiency](/graphs_new/scaling_performance.png)
 
 ### Training a very large model (800M params, model 6)
-![Large Model Loss](/graphs/big_model_loss.png)
-![Large Model Time](/graphs/big_model_time.png)
+![Large Model Loss](/graphs_new/big_model_loss.png)
+![Large Model Time](/graphs_new/big_model_time.png)
 
 ## Contributors
 
