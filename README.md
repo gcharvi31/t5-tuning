@@ -43,8 +43,33 @@ This project was done as a part of the Intro to Deep Learning Course taken by Pr
 
 
 ## Results
+We recorded the following metrics across various training configurations - 
+1) Validation Loss
+2) Training Time
+3) GPU Utilization
+4) GPU Temperature
 
+We used these to evaluate scaling performance and the ability to train better models on given hardware.
 
+### 1. Validation Loss
+![Val Loss](/graphs/val_loss.png)
+
+### 2. Training Time
+![Training Time](/graphs/training_time.png)
+
+### 3. Training Time
+![Bio GPU Util](/graphs/gpu_3_bio.png)
+![GSM GPU Util](/graphs/gpu_3_gsm.png)
+
+### 4. GPU Temperature
+![Training Time](/graphs/max_temp.png)
+
+### Scaling Efficiency
+![Scaling Efficiency](/graphs/scaling_performance.png)
+
+### Training a very large model (800M params, model 6)
+![Large Model Loss](/graphs/big_model_loss.png)
+![Large Model Time](/graphs/big_model_time.png)
 
 ## Contributors
 
