@@ -14,7 +14,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint, TQDMProgressBar, EarlyStopping
 from pytorch_lightning.loggers import CSVLogger, NeptuneLogger
 from transformers import T5Tokenizer
-from gsm8k_dataload import extract_questions_and_answers, GSMDataModule, GSMQAModel, generate_answer
+from gsm8k_dataload_auto_lr import extract_questions_and_answers, GSMDataModule, GSMQAModel, generate_answer
 from params import meta_params
 
 # Seeds all the processes including numpy torch and other imported modules - makes for better comparisions
@@ -135,15 +135,13 @@ trainer = pl.Trainer(
     accelerator="gpu",
     devices=DEVICES,
     strategy=STRATEGY,
-    logger=neptune_logger,
-    auto_lr_find=True,
-    log_gpu_memory='all'
+    logger=neptune_logger
     )
 
 ### Tune to find the learning rate
-trainer.tune(model)
+#trainer.tune(model)
 
-print(model.learning_rate)
+#print(model.learning_rate)
 
 logger.debug("Starting training ...")
 training_start = time.time()

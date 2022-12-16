@@ -205,7 +205,7 @@ class GSMQAModel(pl.LightningModule):
     return loss
 
   def configure_optimizers(self):
-    optimizer = AdamW(self.parameters(), lr=self.learning_rate)
+    optimizer = AdamW(self.parameters(), lr=4.99e-5)
     return optimizer
 
 

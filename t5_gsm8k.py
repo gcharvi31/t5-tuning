@@ -136,7 +136,7 @@ trainer = pl.Trainer(
     accelerator="gpu",
     devices=DEVICES,
     strategy=STRATEGY,
-    logger=neptune_logger,
+    logger=neptune_logger
     )
 
 logger.debug("Starting training ...")
