@@ -57,7 +57,7 @@ We used these to evaluate scaling performance and the ability to train better mo
 ### 2. Training Time
 ![Training Time](/graphs/training_time.png)
 
-### 3. Training Time
+### 3. GPU Utilization
 ![Bio GPU Util](/graphs/gpu_3_bio.png)
 ![GSM GPU Util](/graphs/gpu_3_gsm.png)
 
