@@ -42,6 +42,9 @@ This project was done as a part of the Intro to Deep Learning Course taken by Pr
 | 6 (t5-large) | 2                 | 2              | 32           | Model Parallel |
 
 
+## Project Pipeline
+![Pipeline](/graphs_new/sol_arch.png)
+
 ## Results
 We recorded the following metrics across various training configurations - 
 1) Validation Loss
@@ -63,6 +66,10 @@ We used these to evaluate scaling performance and the ability to train better mo
 
 ### 4. GPU Temperature
 ![Training Time](/graphs_new/max_temp.png)
+
+### Pareto Curves
+![Bio Pareto](/graphs_new/pareto_bio.png)
+![GSM Pareto](/graphs_new/pareto_gsm.png)
 
 ### Scaling Efficiency
 ![Scaling Efficiency](/graphs_new/scaling_performance.png)
