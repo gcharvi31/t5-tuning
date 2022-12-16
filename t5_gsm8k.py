@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import subprocess
-import neptune.new as neptune
+#import neptune.new as neptune
 from datetime import datetime
 from pathlib import Path
 from sklearn.model_selection import train_test_split
@@ -21,7 +21,7 @@ from params import meta_params
 pl.seed_everything(0, workers=True)
 
 # Get NEPTUNE_API_TOKEN from environment variable
-api_token = os.environ['NEPTUNE_API_TOKEN']
+#api_token = os.environ['NEPTUNE_API_TOKEN']
 
 
 ### Download gsm8k from Github into scratch folder
@@ -77,12 +77,12 @@ STRATEGY = args.strategy
 
 # define loggers for model metrics
 csv_logger = CSVLogger(save_dir=output_folder)
-neptune_logger = NeptuneLogger(
-    api_key=api_token,
-    project='charvig/t5-gsm',
-    tags = ['finetune', 't5'],
-    log_model_checkpoints=False
-)
+#neptune_logger = NeptuneLogger(
+#    api_key=api_token,
+#    project='charvig/t5-gsm',
+#    tags = ['finetune', 't5'],
+#    log_model_checkpoints=False
+#)
 tb_logger = TensorBoardLogger(save_dir=output_folder, name=args.identifier)
 
 logger_pid = subprocess.Popen(
